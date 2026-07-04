@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Register for SilverCare AI.">
+    <title>Register - SilverCare AI</title>
+
+    
+        <style>
+        /* ==========================================================
+           CSS VARIABLES
+        ========================================================== */
+
+        :root {
+            --bg: #F8FAFC;
+            --surface: #FFFFFF;
+            --surface-2: #F1F5F9;
+
+            --text: #0F172A;
+            --text-secondary: #475569;
+            --text-muted: #64748B;
+
+            --border: #E2E8F0;
+
+            --primary: #2563EB;
+            --primary-hover: #1D4ED8;
+
+            --success: #16A34A;
+            --warning: #D97706;
+            --danger: #DC2626;
+            --info: #0891B2;
+
+            --shadow-sm: 0 1px 2px rgba(15, 23, 42, .04);
+            --shadow-md: 0 8px 30px rgba(15, 23, 42, .08);
+
+            --radius-sm: 8px;
+            --radius: 12px;
+            --radius-lg: 14px;
+
+            --transition: 180ms ease-in-out;
+        }
+
+        html[data-theme="dark"] {
+            --bg: #0F172A;
+            --surface: #111827;
+            --surface-2: #1F2937;
+
+            --text: #F8FAFC;
+            --text-secondary: #CBD5E1;
+            --text-muted: #94A3B8;
+
+            --border: #334155;
+
+            --primary: #3B82F6;
+            --primary-hover: #60A5FA;
+
+            --success: #22C55E;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --info: #06B6D4;
+
+            --shadow-sm: none;
+            --shadow-md: none;
+        }
+
+        /* ==========================================================
+           RESET
+        ========================================================== */
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            transition: background var(--transition),
+                color var(--transition);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        /* ==========================================================
+           TYPOGRAPHY
+        ========================================================== */
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        h2 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            margin-bottom: .5rem;
+        }
+
+        p {
+            color: var(--text-secondary);
+        }
+
+        /* ==========================================================
+           LAYOUT
+        ========================================================== */
+
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: all var(--transition);
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: .85rem;
+        }
+
+        .brand-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--surface-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .brand-text small {
+            display: block;
+            color: var(--text-muted);
+            margin-top: 2px;
+            font-size: .85rem;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+        }
+
+        .nav-links a {
+            padding: .65rem 1rem;
+            border-radius: 10px;
+            color: var(--text-secondary);
+            transition: all var(--transition);
+        }
+
+        .nav-links a:hover {
+            background: var(--surface-2);
+            color: var(--text);
+        }
+
+        .nav-links a.active {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .theme-toggle {
+            border: none;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+        }
+
+        main {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem 1.5rem;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        /* ==========================================================
+           CARD
+        ========================================================== */
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 2.25rem;
+            box-shadow: var(--shadow-md);
+            animation: fadeIn .35s ease;
+            transition: var(--transition);
+        }
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .card-header p {
+            margin-top: .5rem;
+        }
+
+        /* ==========================================================
+           ALERTS
+        ========================================================== */
+
+        .django-messages {
+            list-style: none;
+            margin-bottom: 1.5rem;
+            display: grid;
+            gap: .75rem;
+        }
+
+        .django-messages li {
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            animation: fadeIn .25s ease;
+        }
+
+        .success {
+            background: rgba(22, 163, 74, .08);
+            color: var(--success);
+            border-color: rgba(22, 163, 74, .2);
+        }
+
+        .error {
+            background: rgba(220, 38, 38, .08);
+            color: var(--danger);
+            border-color: rgba(220, 38, 38, .2);
+        }
+
+        .warning {
+            background: rgba(217, 119, 6, .08);
+            color: var(--warning);
+            border-color: rgba(217, 119, 6, .2);
+        }
+
+        .info {
+            background: rgba(8, 145, 178, .08);
+            color: var(--info);
+            border-color: rgba(8, 145, 178, .2);
+        }
+
+        /* ==========================================================
+           FORMS
+        ========================================================== */
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: .45rem;
+        }
+
+        label {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: .9rem 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            transition: var(--transition);
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+        }
+
+        small {
+            color: var(--text-muted);
+            font-size: .9rem;
+        }
+
+        /* ==========================================================
+           BUTTONS
+        ========================================================== */
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            border: none;
+            cursor: pointer;
+            border-radius: 10px;
+            padding: .95rem 1.2rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:active {
+            transform: scale(.98);
+        }
+
+        /* ==========================================================
+           FOOTER
+        ========================================================== */
+
+        footer {
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+            text-align: center;
+            padding: 1.25rem;
+            color: var(--text-muted);
+        }
+
+        /* ==========================================================
+           UTILITIES
+        ========================================================== */
+
+        .register-link {
+            margin-top: 1.75rem;
+            text-align: center;
+        }
+
+        .register-link a {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* ==========================================================
+           ANIMATIONS
+        ========================================================== */
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        /* ==========================================================
+           RESPONSIVE
+        ========================================================== */
+
+        @media (max-width:640px) {
+
+            .header-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .nav-links {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .theme-toggle {
+                align-self: flex-end;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+
+            <!-- Brand -->
+            <div class="brand">
+                <div class="brand-text">
+                    <h1>SilverCare AI</h1>
+                    <small>Smart Companion for Seniors</small>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="nav-links" aria-label="Main Navigation">
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'register' %}" class="active">Register</a>
+            </nav>
+
+            <!-- Theme Toggle -->
+            <button
+                id="themeToggle"
+                class="theme-toggle"
+                type="button"
+                aria-label="Toggle Theme">
+                🌙
+            </button>
+
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="page">
+
+            <!-- Django Messages -->
+            {% if messages %}
+            <ul class="django-messages" id="django-messages-container">
+                {% for message in messages %}
+                <li class="{{ message.tags }}" id="msg-{{ forloop.counter }}">
+                    {{ message }}
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+
+            <!-- Register Card -->
+            <section class="card">
+
+                <div class="card-header">
+                    <h2>Register Account</h2>
+                    <p>Create your SilverCare AI account</p>
+                </div>
+
+                <form method="post" action="{% url 'register' %}">
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                    <div class="form-group">
+
+                        <label for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                        </label>
+
+                        {{ field }}
+
+                        {% if field.help_text %}
+                        <small>{{ field.help_text }}</small>
+                        {% endif %}
+
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                            <small class="error">{{ error }}</small>
+                            {% endfor %}
+                        {% endif %}
+
+                    </div>
+                    {% endfor %}
+
+                    <button type="submit" class="btn btn-primary">
+                        Register
+                    </button>
+
+                </form>
+
+                <div class="register-link">
+                    <p>
+                        Already have an account?
+                        <a href="{% url 'login' %}">Login here</a>
+                    </p>
+                </div>
+
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 SilverCare AI - Designed with care for our seniors.</p>
+    </footer>
+
+    <!-- Theme Toggle Script -->
+    <script>
+        (function () {
+
+            const html = document.documentElement;
+            const btn = document.getElementById("themeToggle");
+
+            if (!btn) return;
+
+            const savedTheme = localStorage.getItem("theme") || "light";
+
+            html.setAttribute("data-theme", savedTheme);
+            btn.textContent = savedTheme === "dark" ? "☀️" : "🌙";
+
+            btn.addEventListener("click", function () {
+
+                const nextTheme =
+                    html.getAttribute("data-theme") === "light"
+                        ? "dark"
+                        : "light";
+
+                html.setAttribute("data-theme", nextTheme);
+                localStorage.setItem("theme", nextTheme);
+
+                btn.textContent = nextTheme === "dark"
+                    ? "☀️"
+                    : "🌙";
+            });
+
+        })();
+    </script>
+
+</body>
+</html>
+

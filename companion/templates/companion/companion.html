@@ -1,0 +1,351 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Talk or chat with SilverCare AI, your gentle and patient health companion.">
+    <title>SilverCare Companion Chat</title>
+    <link rel="stylesheet" href="{% static 'companion/style.css' %}">
+</head>
+
+<body>
+
+    <!-- CSRF token placeholder for JS fetch -->
+    <div style="display:none;">
+        {% csrf_token %}
+    </div>
+
+    <header>
+                <div class="brand-text">
+                    <h1>SilverCare AI</h1>
+                    <small>Smart Companion for Seniors</small>
+                </div>
+       
+        <nav class="nav-links" aria-label="Main Navigation">
+            <a href="{% url 'companion' %}" id="nav-chat" class="active" aria-current="page">Companion Chat</a>
+            <a href="{% url 'add_data' %}" id="nav-add-data">Add Care Data</a>
+            <a href="{% url 'manage_records' %}" id="nav-manage-records">Manage Records</a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'logout' %}" id="nav-logout">Logout ({{ user.username }})</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main>
+        <section class="card chat-container" aria-labelledby="chat-heading">
+            <h2 id="chat-heading" class="sr-only">Senior Companion Chat Room</h2>
+
+            <!-- Voice action bar -->
+            <div class="voice-actions" role="group" aria-label="Voice Controls">
+                <button type="button" class="btn btn-mic-start" id="btn-start-voice">
+                    <span class="icon" aria-hidden="true">🎤</span> Start Listening
+                </button>
+                <button type="button" class="btn btn-mic-stop" id="btn-stop-voice" disabled>
+                    <span class="icon" aria-hidden="true">🛑</span> Stop Listening
+                </button>
+            </div>
+
+            <!-- Visual status indicator for seniors -->
+            <div class="voice-indicator-bar" aria-live="polite">
+                <div class="voice-indicator-dot" id="voice-dot" aria-hidden="true"></div>
+                <span class="voice-status-text" id="voice-status">Voice input is currently stopped. Click 'Start
+                    Listening' to speak.</span>
+            </div>
+
+            <!-- Chat History Area -->
+            <div class="chat-history" id="chat-history" role="log" aria-label="Conversation Log">
+                <div class="message bot" id="welcome-msg">
+                    Hello! I am your SilverCare Companion. How can I help you today? You can ask me about your
+                    medications or upcoming doctor appointments. You can type below or click "Start Listening" to speak
+                    to me.
+                </div>
+            </div>
+
+            <!-- Chat Input Area (Text) -->
+            <form id="chat-form" class="chat-input-area">
+                <label for="chat-input" class="sr-only">Type your message to SilverCare</label>
+                <input type="text" id="chat-input" placeholder="Type here (e.g. What are my medications today?)"
+                    autocomplete="off" required>
+                <button type="submit" class="btn btn-primary" id="btn-send-text">Send</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 SilverCare AI - Designed with care for our seniors.</p>
+    </footer>
+
+    <!-- Vanilla Javascript Logic for Web Speech and API calls -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
+            const chatHistory = document.getElementById('chat-history');
+            const btnStartVoice = document.getElementById('btn-start-voice');
+            const btnStopVoice = document.getElementById('btn-stop-voice');
+            const voiceDot = document.getElementById('voice-dot');
+            const voiceStatus = document.getElementById('voice-status');
+
+            // Retrieve CSRF token
+            const csrfTokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
+            const csrftoken = csrfTokenInput ? csrfTokenInput.value : '';
+
+            // Keep track of internal state
+            let isListening = false;
+            let isSpeaking = false;
+            let conversationHistory = []; // Local history formatted for API requests
+
+            // Setup Speech Recognition
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            let recognition = null;
+
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+
+                // On result event
+                recognition.onresult = (event) => {
+                    const resultIndex = event.resultIndex;
+                    const transcript = event.results[resultIndex][0].transcript.trim();
+                    if (transcript) {
+                        appendMessage('user', transcript);
+                        sendMessageToAPI(transcript);
+                    }
+                };
+
+                // Handle unexpected termination when active
+                recognition.onend = () => {
+                    if (isListening && !isSpeaking) {
+                        // Restart recognition if listening is active and we're not speaking
+                        try {
+                            recognition.start();
+                        } catch (e) {
+                            console.error('Error restarting recognition:', e);
+                        }
+                    }
+                };
+
+                recognition.onerror = (event) => {
+                    console.error('Speech Recognition Error:', event.error);
+                    if (event.error === 'not-allowed') {
+                        setVoiceState(false, 'Microphone permission denied. Please allow microphone access.');
+                    }
+                };
+            } else {
+                btnStartVoice.disabled = true;
+                voiceStatus.textContent = 'Voice recognition is not supported in this browser. Please use Google Chrome.';
+            }
+
+            // Start Listening
+            btnStartVoice.addEventListener('click', () => {
+                if (!recognition) return;
+                isListening = true;
+                btnStartVoice.disabled = true;
+                btnStopVoice.disabled = false;
+                setVoiceState(true, 'Listening... Speak now!');
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.error(e);
+                }
+            });
+
+            // Stop Listening
+            btnStopVoice.addEventListener('click', () => {
+                isListening = false;
+                btnStartVoice.disabled = false;
+                btnStopVoice.disabled = true;
+                setVoiceState(false, 'Voice input is stopped.');
+                if (recognition) {
+                    try {
+                        recognition.stop();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+                if (window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                }
+            });
+
+            // Handle Text Form Submission
+            chatForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const text = chatInput.value.trim();
+                if (!text) return;
+
+                chatInput.value = '';
+                appendMessage('user', text);
+                sendMessageToAPI(text);
+            });
+
+            // Update UI indicating Voice Recording State
+            function setVoiceState(active, text) {
+                if (active) {
+                    voiceDot.classList.add('active');
+                    voiceDot.style.backgroundColor = 'var(--danger)'; // Red dot when listening
+                } else {
+                    voiceDot.classList.remove('active');
+                    voiceDot.style.backgroundColor = 'var(--border)';
+                }
+                voiceStatus.textContent = text;
+            }
+
+            // Append messages to the chat box
+            function appendMessage(role, text) {
+                const msgDiv = document.createElement('div');
+                msgDiv.classList.add('message', role);
+                msgDiv.textContent = text;
+                chatHistory.appendChild(msgDiv);
+
+                // Keep scroll at bottom
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+
+                // Keep local history tracker up to date (up to last 10 messages to keep contexts small & fast)
+                conversationHistory.push({
+                    role: role === 'user' ? 'user' : 'model',
+                    parts: text
+                });
+                if (conversationHistory.length > 20) {
+                    conversationHistory.shift();
+                }
+            }
+
+            // Send message to Django chat_api View via Fetch
+            async function sendMessageToAPI(messageText) {
+                // Add loading indicator
+                const loadingDiv = document.createElement('div');
+                loadingDiv.classList.add('message', 'bot');
+                loadingDiv.id = 'temp-loading-msg';
+                loadingDiv.textContent = '... Let me think ...';
+                chatHistory.appendChild(loadingDiv);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+
+                try {
+                    // Send to backend endpoint
+                    const response = await fetch("{% url 'chat_api' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrftoken
+                        },
+                        body: JSON.stringify({
+                            message: messageText,
+                            history: conversationHistory.slice(0, -1) // Send all except current message
+                        })
+                    });
+
+                    // Remove loading indicator
+                    const loader = document.getElementById('temp-loading-msg');
+                    if (loader) loader.remove();
+
+                    if (!response.ok) {
+                        const errData = await response.json();
+                        throw new Error(errData.error || 'Server error occurred');
+                    }
+
+                    const data = await response.json();
+                    const reply = data.reply;
+
+                    appendMessage('bot', reply);
+                    speakAIResponse(reply);
+
+                } catch (error) {
+                    const loader = document.getElementById('temp-loading-msg');
+                    if (loader) loader.remove();
+
+                    console.error('API Error:', error);
+                    appendMessage('bot', `I'm sorry, I'm having trouble understanding you right now. (${error.message})`);
+                }
+            }
+
+            // Read the text aloud using SpeechSynthesis
+            function speakAIResponse(text) {
+                if (!('speechSynthesis' in window)) return;
+
+                // Stop active speech first
+                window.speechSynthesis.cancel();
+
+                // Stop listening temporarily to prevent feedback loops (mic hearing speakers)
+                if (isListening && recognition) {
+                    try {
+                        recognition.stop();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+
+                isSpeaking = true;
+                voiceDot.classList.remove('active');
+                voiceDot.style.backgroundColor = 'var(--primary)'; // Amber highlight when speaking
+                voiceStatus.textContent = 'SilverCare is speaking...';
+
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+
+                // Adjust settings for elder-friendly listening
+                utterance.rate = 0.95;  // Slightly slower speech rate
+                utterance.pitch = 1.0;  // Standard pitch
+
+                // Event handlers
+                utterance.onend = () => {
+                    isSpeaking = false;
+                    resumeListeningIfNeeded();
+                };
+
+                utterance.onerror = (e) => {
+                    console.error('Speech synthesis error:', e);
+                    isSpeaking = false;
+                    resumeListeningIfNeeded();
+                };
+
+                window.speechSynthesis.speak(utterance);
+            }
+
+            function resumeListeningIfNeeded() {
+                if (isListening && recognition) {
+                    setVoiceState(true, 'Listening... Speak now!');
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        console.error('Error resuming speech recognition:', e);
+                    }
+                } else {
+                    setVoiceState(false, 'Voice input is stopped.');
+                }
+            }
+
+            // Proactive Alert Polling
+            async function checkProactiveAlerts() {
+                try {
+                    const response = await fetch("{% url 'check_alerts' %}");
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.alerts && data.alerts.length > 0) {
+                            data.alerts.forEach(alertText => {
+                                // Add alert message visually to the chat log
+                                appendMessage('bot', alertText);
+                                // Speak the alert out loud
+                                speakAIResponse(alertText);
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching proactive alerts:', error);
+                }
+            }
+
+            // Poll every 60 seconds (60000ms)
+            setInterval(checkProactiveAlerts, 60000);
+
+            // Run initial check after 3 seconds to catch any immediate alerts
+            setTimeout(checkProactiveAlerts, 3000);
+        });
+    </script>
+</body>
+
+</html>

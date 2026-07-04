@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Login to SilverCare AI.">
+    <title>Login - SilverCare AI</title>
+    <link rel="stylesheet" href="{% static 'companion/style.css' %}">
+</head>
+<body>
+
+    <header>
+        <h1>
+            <span class="logo-icon" aria-hidden="true">👵👴</span>
+            <span>SilverCare AI</span>
+        </h1>
+        <nav class="nav-links" aria-label="Main Navigation">
+            <a href="{% url 'login' %}" class="active">Login</a>
+            <a href="{% url 'register' %}">Register</a>
+        </nav>
+    </header>
+
+    <main style="max-width: 500px; margin: 4rem auto;">
+        <!-- Django Notification Messages -->
+        {% if messages %}
+        <ul class="django-messages" id="django-messages-container">
+            {% for message in messages %}
+            <li class="{{ message.tags }}" id="msg-{{ forloop.counter }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <section class="card">
+            <h2 style="text-align: center; margin-bottom: 2rem;">🔑 User Login</h2>
+            <form method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <small style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-top: 0.25rem;">{{ field.help_text }}</small>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Login</button>
+            </form>
+            <div style="text-align: center; margin-top: 1.5rem; font-size: 1.15rem;">
+                <p>New to SilverCare? <a href="{% url 'register' %}" style="color: var(--primary); text-decoration: underline;">Create an account here</a></p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 SilverCare AI - Designed with care for our seniors.</p>
+    </footer>
+
+</body>
+</html>
